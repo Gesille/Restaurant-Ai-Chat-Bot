@@ -1,15 +1,38 @@
 #!/usr/bin/env bash
-# Run on the VPS from the repo root:  ./deploy/deploy.sh
+# Build, migrate and (re)start the API. Run on the VPS from anywhere:  ./deploy/deploy.sh
+# GitHub Actions calls this automatically after every successful CI run on main.
 set -euo pipefail
 cd "$(dirname "$0")"
-[ -f .env.production ] || { echo "Missing deploy/.env.production"; exit 1; }
-[ -f .env ] || { echo "Missing deploy/.env (API_DOMAIN)"; exit 1; }
-C="docker compose -f docker-compose.prod.yml"
-$C build api
-echo "== migrating database =="
-$C run --rm api node dist/scripts/migrate.js
-echo "== starting =="
-$C up -d
-sleep 8
+
+[ -f .env.production ] || { echo "Missing deploy/.env.production (copy .env.production.example)"; exit 1; }
+[ -f .env ] || { echo "Missing deploy/.env (copy .env.example)"; exit 1; }
 set -a; . ./.env; set +a
-curl -fsS "https://$API_DOMAIN/health/ready" && echo && echo "OK: API is live"
+API_PORT="${API_PORT:-3000}"
+
+C="docker compose -f docker-compose.prod.yml"
+
+echo "== building image ($(git rev-parse --short HEAD 2>/dev/null || echo local)) =="
+$C build api
+
+echo "== starting MongoDB =="
+$C up -d --wait mongo
+
+echo "== migrating database =="
+$C run --rm --no-deps api node dist/scripts/migrate.js
+
+echo "== starting =="
+$C up -d --remove-orphans
+
+echo "== waiting for /health/ready =="
+for _ in $(seq 1 30); do
+  if curl -fsS "http://127.0.0.1:${API_PORT}/health/ready" >/dev/null 2>&1; then
+    echo "OK: API is live on 127.0.0.1:${API_PORT}${API_DOMAIN:+ (https://$API_DOMAIN)}"
+    docker image prune -f >/dev/null
+    exit 0
+  fi
+  sleep 2
+done
+
+echo "FAILED: API did not become ready. Last logs:"
+$C logs --tail 80 api
+exit 1

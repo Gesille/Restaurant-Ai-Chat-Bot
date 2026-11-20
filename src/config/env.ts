@@ -11,6 +11,11 @@ const schema = z.object({
 
   MONGODB_URI: z.string().min(1),
   MONGODB_DB_NAME: z.string().regex(/^[A-Za-z0-9_-]{1,38}$/, "must be 1-38 chars: letters, digits, _ or -"),
+  /**
+   * Self-hosted MongoDB on the same server (Docker network): allows a non-TLS URI in production,
+   * but ONLY when every host is a single-label private name such as "mongo" (not routable on the internet).
+   */
+  MONGODB_PRIVATE_NETWORK: z.enum(["true", "false"]).default("false").transform((v) => v === "true"),
 
   TRUST_PROXY_HOPS: z.coerce.number().int().min(0).max(5).default(0),
   CORS_ALLOWED_ORIGINS: z
@@ -63,11 +68,26 @@ const schema = z.object({
 
 export type Env = z.infer<typeof schema>;
 
-function isLocalMongo(uri: string): boolean {
-  if (!uri.startsWith("mongodb://")) return false;
+function mongoHosts(uri: string): string[] {
+  if (!uri.startsWith("mongodb://")) return [];
   const authority = uri.slice("mongodb://".length).split(/[/?]/, 1)[0] ?? "";
-  const hosts = authority.slice(authority.lastIndexOf("@") + 1).split(",");
-  return hosts.some((h) => /^(localhost|127\.|\[?::1\]?)/i.test(h));
+  return authority.slice(authority.lastIndexOf("@") + 1).split(",");
+}
+
+function isLocalMongo(uri: string): boolean {
+  return mongoHosts(uri).some((h) => /^(localhost|127\.|\[?::1\]?)/i.test(h));
+}
+
+/** Every host is a single-label name (e.g. "mongo" or "mongo:27017"): resolvable only inside a private (Docker) network. */
+function isPrivateNetworkMongo(uri: string): boolean {
+  const hosts = mongoHosts(uri);
+  return (
+    hosts.length > 0 &&
+    hosts.every((h) => {
+      const [name = "", port, ...rest] = h.split(":");
+      return rest.length === 0 && /^[a-z][a-z0-9_-]{0,62}$/i.test(name) && (port === undefined || /^\d{1,5}$/.test(port));
+    })
+  );
 }
 
 /** Fail fast: the process refuses to boot with a missing or invalid configuration. */
@@ -86,7 +106,13 @@ export function loadEnv(source: NodeJS.ProcessEnv = process.env): Env {
       throw new Error("Invalid environment configuration: production cannot use a localhost MongoDB");
     }
     const tlsEnabled = uri.startsWith("mongodb+srv://") || /[?&]tls=true(&|$)/i.test(uri);
-    if (!tlsEnabled) {
+    const privateNetwork = env.MONGODB_PRIVATE_NETWORK && isPrivateNetworkMongo(uri);
+    if (env.MONGODB_PRIVATE_NETWORK && !privateNetwork) {
+      throw new Error(
+        "Invalid environment configuration: MONGODB_PRIVATE_NETWORK requires single-label private hosts (e.g. mongodb://user:pass@mongo:27017)",
+      );
+    }
+    if (!tlsEnabled && !privateNetwork) {
       throw new Error("Invalid environment configuration: production MongoDB connection must use TLS");
     }
     if (/[?&]tls(AllowInvalid(Certificates|Hostnames)|Insecure)=true/i.test(uri)) {

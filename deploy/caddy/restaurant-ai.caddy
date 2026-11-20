@@ -1,0 +1,6 @@
+# Host Caddy site for this project. server-setup.sh installs it as /etc/caddy/sites/restaurant-ai.caddy
+# (with the real domain and port). HTTPS certificates are obtained and renewed automatically.
+api.yourdomain.com {
+	encode gzip
+	reverse_proxy 127.0.0.1:3000
+}

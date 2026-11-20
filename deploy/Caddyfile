@@ -1,5 +1,0 @@
-# Automatic HTTPS (Let's Encrypt) for the API hostname.
-{$API_DOMAIN} {
-	encode gzip
-	reverse_proxy api:3000
-}

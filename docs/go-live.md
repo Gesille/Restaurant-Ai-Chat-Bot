@@ -4,7 +4,7 @@ Why a VPS: the API is a long-running Node 22 / Express 5 server. GoDaddy shared 
 
 ## 1. Prepare (once)
 - GoDaddy **VPS** (Ubuntu 22.04/24.04, 2 GB RAM is enough to start). Note its public IP.
-- **MongoDB Atlas** cluster (the app requires a TLS MongoDB; localhost is rejected in production). DB user with readWrite on `restaurant_ai` only. In Network Access allow **the VPS IP only**.
+- **MongoDB** runs in Docker on the VPS itself (set up by `deploy/server-setup.sh`, see `deploy/README.md`). Atlas is still supported: use a `mongodb+srv://` URI and `MONGODB_PRIVATE_NETWORK=false`.
 - **OpenAI** key, with a monthly spend limit in the OpenAI dashboard.
 - **DNS** (GoDaddy DNS): add an `A` record `api` -> VPS IP (so `api.yourdomain.com`). Wait until it resolves.
 
@@ -27,7 +27,7 @@ chmod 600 deploy/.env.production
 ./deploy/deploy.sh
 ```
 Expected: `{"status":"ok"}` then `OK: API is live`. Caddy gets the HTTPS certificate automatically on first request.
-Updates later: upload the new code and run `./deploy/deploy.sh` again (it migrates first).
+Updates: automatic on every push to `main` after CI passes. Full setup with auto-deploy: `deploy/README.md`.
 
 ## 4. Onboard each restaurant (repeat x5)
 ```bash
