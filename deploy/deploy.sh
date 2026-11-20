@@ -20,6 +20,21 @@ $C up -d --wait mongo
 echo "== migrating database =="
 $C run --rm --no-deps api node dist/scripts/migrate.js
 
+echo "== syncing restaurants (data/restaurants/*.json) =="
+# The JSON files are the source of truth. New owner passwords never reach CI logs:
+# they are redacted here and kept only on the server in deploy/credentials.log (mode 600).
+redact() { sed -E 's/^(password: +)[^ ]+.*/\1********  (saved on the server: deploy\/credentials.log)/'; }
+DATA_DIR="$(cd .. && pwd)/data/restaurants"
+if ! SYNC_OUT="$($C run --rm --no-deps -v "$DATA_DIR:/app/data/restaurants:ro" api node dist/scripts/provisionFile.js data/restaurants 2>&1)"; then
+  printf '%s\n' "$SYNC_OUT" | redact
+  echo "FAILED: restaurant sync (the running version was NOT replaced)"
+  exit 1
+fi
+printf '%s\n' "$SYNC_OUT" | redact
+if grep -q '^password:' <<<"$SYNC_OUT"; then
+  ( umask 077; { echo "--- $(date -u +%FT%TZ)"; printf '%s\n' "$SYNC_OUT" | grep -E '^(== |restaurant:|owner:|password:)'; } >> credentials.log )
+fi
+
 echo "== starting =="
 $C up -d --remove-orphans
 

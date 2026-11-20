@@ -1,3 +1,4 @@
+/* global db, print, process -- runs inside mongosh (docker-entrypoint-initdb.d), not Node */
 // Runs once, on the first start of an EMPTY data volume (docker-entrypoint-initdb.d).
 // Creates the application user with rights on the app database only (readWrite + dbAdmin for migrations).
 const dbName = process.env.MONGO_APP_DB;

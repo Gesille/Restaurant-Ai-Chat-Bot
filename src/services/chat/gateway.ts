@@ -29,12 +29,15 @@ export interface ChatTenantContext {
 
 export interface ChatGateway {
   resolveWidgetKey(publicKey: unknown): Promise<ResolvedTenant | null>;
+  /** Origin -> active public widget key (or null). */
+  discoverWidgetKey(origin: unknown): Promise<string | null>;
   tenantContext(restaurantId: RestaurantId): Promise<ChatTenantContext | null>;
 }
 
 export function createChatGateway(repos: Repositories): ChatGateway {
   return {
     resolveWidgetKey: (key) => repos.tenantResolver.resolveWidgetKey(key),
+    discoverWidgetKey: (origin) => repos.tenantResolver.discoverWidgetKey(origin),
     async tenantContext(restaurantId) {
       const restaurant = await repos.getRestaurant(restaurantId);
       if (!restaurant || restaurant.status !== "active") return null;

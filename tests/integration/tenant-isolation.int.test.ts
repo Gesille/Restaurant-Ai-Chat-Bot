@@ -105,4 +105,16 @@ describe.skipIf(!uri)("tenant isolation against MongoDB", () => {
     await repos.cols.widgetKeys.updateOne({ publicKey }, { $set: { status: "revoked" } });
     expect(await repos.tenantResolver.resolveWidgetKey(publicKey)).toBeNull();
   });
+
+  it("discovers the active key by exact origin only", async () => {
+    const publicKey = generateWidgetKey();
+    await repos.cols.widgetKeys.insertOne({ restaurantId: A, publicKey, allowedOrigins: ["https://disc.example"], status: "active", createdAt: new Date() });
+    expect(await repos.tenantResolver.discoverWidgetKey("https://disc.example")).toBe(publicKey);
+    expect(await repos.tenantResolver.discoverWidgetKey("https://disc.example/")).toBe(publicKey); // normalised
+    expect(await repos.tenantResolver.discoverWidgetKey("http://disc.example")).toBeNull();
+    expect(await repos.tenantResolver.discoverWidgetKey("https://www.disc.example")).toBeNull();
+    expect(await repos.tenantResolver.discoverWidgetKey({ $ne: null })).toBeNull();
+    await repos.cols.widgetKeys.updateOne({ publicKey }, { $set: { status: "revoked" } });
+    expect(await repos.tenantResolver.discoverWidgetKey("https://disc.example")).toBeNull();
+  });
 });

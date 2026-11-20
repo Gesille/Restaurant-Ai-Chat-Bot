@@ -28,4 +28,29 @@ export class TenantResolver {
       allowedOrigins: key.allowedOrigins,
     };
   }
+
+  /**
+   * Origin -> public widget key, so a site needs no key pasted in (the WordPress plugin calls this on load).
+   * The key is public by design (it sits in every page's HTML) and stays bound to the same exact-origin
+   * allow-list, so this reveals nothing a visitor of that site could not already read.
+   */
+  async discoverWidgetKey(origin: unknown): Promise<string | null> {
+    if (typeof origin !== "string" || origin.length > 200) return null;
+    let normalized: string;
+    try {
+      const url = new URL(origin);
+      if (url.protocol !== "https:" && url.hostname !== "localhost") return null;
+      normalized = url.origin;
+    } catch {
+      return null;
+    }
+    const keys = await this.cols.widgetKeys
+      .find({ allowedOrigins: normalized, status: "active" }, { sort: { createdAt: -1 }, limit: 5 })
+      .toArray();
+    for (const key of keys) {
+      const restaurant = await this.cols.restaurants.findOne({ restaurantId: key.restaurantId, status: "active" });
+      if (restaurant) return key.publicKey;
+    }
+    return null;
+  }
 }

@@ -70,6 +70,26 @@ export function createChatRouter(env: Env, service: ChatService): Router {
     res.json(reply);
   });
 
+  // Zero-config sites: the browser's Origin header finds that site's public widget key.
+  // Simple GET (no custom headers) => no preflight. CORS is echoed only when the origin has a key.
+  const discoverPerIp = rateLimit({ ...base, windowMs: hour, limit: env.CHAT_SESSIONS_PER_IP_HOUR * 5 });
+  router.get("/discover", discoverPerIp, async (req, res) => {
+    const origin = req.headers.origin;
+    const widgetKey = await service.discoverKey(origin);
+    if (!widgetKey || !origin) {
+      // Let the browser read the 404 (it reveals nothing) so the widget can show "not set up yet".
+      if (origin && origin !== "null") {
+        res.setHeader("Access-Control-Allow-Origin", origin);
+        res.setHeader("Vary", "Origin");
+      }
+      res.status(404).json({ error: { code: "not_found", message: "No chat is configured for this site", requestId: req.id } });
+      return;
+    }
+    res.setHeader("Access-Control-Allow-Origin", origin);
+    res.setHeader("Vary", "Origin");
+    res.json({ widgetKey });
+  });
+
   router.use("/:widgetKey", keyed);
   return router;
 }

@@ -421,3 +421,34 @@ describe("tool behaviour", () => {
     expect(results[3]).toEqual({ error: "unknown_tool" });
   });
 });
+
+describe("widget key discovery (zero-config sites)", () => {
+  it("returns the key of the restaurant whose allow-list contains the Origin, with CORS for that origin only", async () => {
+    const c = setup();
+    const a = await request(c.app).get("/v1/chat/discover").set("Origin", ORIGIN_A);
+    expect(a.status).toBe(200);
+    expect(a.body).toEqual({ widgetKey: c.keyA });
+    expect(a.headers["access-control-allow-origin"]).toBe(ORIGIN_A);
+    expect(a.headers["cache-control"]).toBe("no-store");
+    const b = await request(c.app).get("/v1/chat/discover").set("Origin", ORIGIN_B);
+    expect(b.body).toEqual({ widgetKey: c.keyB });
+  });
+
+  it("404s for unknown or missing origins without revealing any key", async () => {
+    const c = setup();
+    const unknown = await request(c.app).get("/v1/chat/discover").set("Origin", "https://evil.example");
+    expect(unknown.status).toBe(404);
+    // readable by that page (so the widget can say "not set up"), but carries no key
+    expect(unknown.headers["access-control-allow-origin"]).toBe("https://evil.example");
+    expect(asText(unknown.body)).not.toContain("wk_");
+    expect((await request(c.app).get("/v1/chat/discover")).status).toBe(404);
+    expect((await request(c.app).get("/v1/chat/discover").set("Origin", "null")).status).toBe(404);
+  });
+
+  it("the discovered key works end to end for that site", async () => {
+    const c = setup();
+    const { widgetKey } = (await request(c.app).get("/v1/chat/discover").set("Origin", ORIGIN_A)).body as { widgetKey: string };
+    const token = await startSession(c, widgetKey, ORIGIN_A);
+    expect((await say(c, token, "hi", widgetKey, ORIGIN_A)).status).toBe(200);
+  });
+});

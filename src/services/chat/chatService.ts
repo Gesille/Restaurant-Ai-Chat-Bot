@@ -61,6 +61,12 @@ export class ChatService {
     return this.gateway.resolveWidgetKey(widgetKey);
   }
 
+  /** The public widget key configured for this exact site origin, if any. */
+  discoverKey(origin: string | undefined): Promise<string | null> {
+    if (!origin || origin === "null") return Promise.resolve(null);
+    return this.gateway.discoverWidgetKey(origin);
+  }
+
   /** Widget key -> tenant, then the exact-origin allow-list. One error for unknown key, another for wrong origin. */
   private async authorize(widgetKey: unknown, origin: string | undefined): Promise<{ resolved: ResolvedTenant; tenant: ChatTenantContext }> {
     const resolved = await this.gateway.resolveWidgetKey(widgetKey);

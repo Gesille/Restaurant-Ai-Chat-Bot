@@ -70,6 +70,11 @@ export class MemoryChatGateway implements ChatGateway {
     return typeof key === "string" ? (this.keys.get(key) ?? null) : null;
   }
 
+  async discoverWidgetKey(origin: unknown) {
+    for (const [publicKey, k] of this.keys) if (k.allowedOrigins.includes(String(origin))) return publicKey;
+    return null;
+  }
+
   async tenantContext(restaurantId: RestaurantId): Promise<ChatTenantContext | null> {
     this.contextRequests.push(restaurantId);
     const s = this.stores.get(restaurantId);
