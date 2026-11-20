@@ -1,0 +1,198 @@
+{
+  "name": "MAIA",
+  "slug": "maia",
+  "timezone": "America/Antigua",
+  "currency": "XCD",
+  "locale": "en",
+  "owner": {
+    "name": "Jeff Hadded",
+    "email": "giselle.georges@nextintl.com"
+  },
+  "origins": [
+    "https://maiasouthpoint.com/"
+  ],
+  "settings": {
+    "address": "PLACEHOLDER address, St. John's, Antigua",
+    "phone": "+1 268 000 0000",
+    "mapUrl": "",
+    "notes": "PLACEHOLDER: replace with real notes (parking, reservations, etc.)",
+    "monthlyAiBudgetUsd": 15
+  },
+  "hours": {
+    "monday": [
+      {
+        "opens": "08:00",
+        "closes": "22:00"
+      }
+    ],
+    "tuesday": [
+      {
+        "opens": "08:00",
+        "closes": "22:00"
+      }
+    ],
+    "wednesday": [
+      {
+        "opens": "08:00",
+        "closes": "22:00"
+      }
+    ],
+    "thursday": [
+      {
+        "opens": "08:00",
+        "closes": "22:00"
+      }
+    ],
+    "friday": [
+      {
+        "opens": "08:00",
+        "closes": "22:00"
+      }
+    ],
+    "saturday": [
+      {
+        "opens": "09:00",
+        "closes": "23:00"
+      }
+    ],
+    "sunday": [
+      {
+        "opens": "09:00",
+        "closes": "17:00"
+      }
+    ]
+  },
+  "holidays": [
+    {
+      "date": "2026-12-25",
+      "closed": true,
+      "note": "Christmas Day (PLACEHOLDER)"
+    }
+  ],
+  "policies": {
+    "payment": {
+      "title": "Payment",
+      "body": "PLACEHOLDER: We accept cash and major credit cards."
+    },
+    "cancellation": {
+      "title": "Reservations & cancellation",
+      "body": "PLACEHOLDER: Reservations are recommended for groups of 6 or more. Please call us to book or cancel."
+    }
+  },
+  "faqs": [
+    {
+      "slug": "wifi",
+      "question": "Do you have WiFi?",
+      "answer": "PLACEHOLDER: Yes, ask your server for the password.",
+      "category": "General",
+      "keywords": [
+        "internet",
+        "wi-fi"
+      ]
+    },
+    {
+      "slug": "parking",
+      "question": "Is there parking?",
+      "answer": "PLACEHOLDER: Yes, free parking is available next to the restaurant.",
+      "category": "General",
+      "keywords": [
+        "car",
+        "park"
+      ]
+    },
+    {
+      "slug": "kids",
+      "question": "Are children welcome?",
+      "answer": "PLACEHOLDER: Yes, families are welcome and we have high chairs.",
+      "category": "General",
+      "keywords": [
+        "children",
+        "family",
+        "kids menu"
+      ]
+    }
+  ],
+  "menu": [
+    {
+      "name": "Soup of the Day",
+      "description": "PLACEHOLDER description for Soup of the Day.",
+      "category": "Starters",
+      "price": 25,
+      "available": true,
+      "dietaryTags": [],
+      "allergens": []
+    },
+    {
+      "name": "Garden Salad",
+      "description": "PLACEHOLDER description for Garden Salad.",
+      "category": "Starters",
+      "price": 28,
+      "available": true,
+      "dietaryTags": [
+        "vegan"
+      ],
+      "allergens": []
+    },
+    {
+      "name": "Grilled Fish",
+      "description": "PLACEHOLDER description for Grilled Fish.",
+      "category": "Mains",
+      "price": 65,
+      "available": true,
+      "dietaryTags": [],
+      "allergens": []
+    },
+    {
+      "name": "Chicken Curry",
+      "description": "PLACEHOLDER description for Chicken Curry.",
+      "category": "Mains",
+      "price": 55,
+      "available": true,
+      "dietaryTags": [],
+      "allergens": []
+    },
+    {
+      "name": "Vegetable Pasta",
+      "description": "PLACEHOLDER description for Vegetable Pasta.",
+      "category": "Mains",
+      "price": 48,
+      "available": true,
+      "dietaryTags": [
+        "vegetarian"
+      ],
+      "allergens": []
+    },
+    {
+      "name": "Chocolate Cake",
+      "description": "PLACEHOLDER description for Chocolate Cake.",
+      "category": "Desserts",
+      "price": 22,
+      "available": true,
+      "dietaryTags": [
+        "vegetarian"
+      ],
+      "allergens": []
+    },
+    {
+      "name": "Fresh Juice",
+      "description": "PLACEHOLDER description for Fresh Juice.",
+      "category": "Drinks",
+      "price": 15,
+      "available": true,
+      "dietaryTags": [
+        "vegan"
+      ],
+      "allergens": []
+    },
+    {
+      "name": "Rum Punch",
+      "description": "PLACEHOLDER description for Rum Punch.",
+      "category": "Drinks",
+      "price": 20,
+      "available": true,
+      "dietaryTags": [],
+      "allergens": []
+    }
+  ],
+  "publish": true
+}
